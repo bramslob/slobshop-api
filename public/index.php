@@ -1,12 +1,17 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+try {
+    require __DIR__ . '/../vendor/autoload.php';
 
-$container = new \Slim\Container;
+    $container = new \Slim\Container;
 
-$app = new \Slim\App($container);
+    $app = new \Slim\App($container);
 
-require_once(__DIR__ . '/../setup/Dependencies.php');
-require_once(__DIR__ . '/../app/Routes.php');
+    require_once(__DIR__ . '/../setup/Dependencies.php');
+    require_once(__DIR__ . '/../app/Routes.php');
 
-$app->run();
+    $app->run();
+}
+catch(Exception $e) {
+    echo $e->getMessage();
+}
