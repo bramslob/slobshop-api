@@ -3,11 +3,34 @@
 
 namespace App\Controllers;
 
+use App\Models\Items;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class Items extends BaseController
+class ItemsController extends BaseController
 {
+
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return mixed
+     */
+    public function overview(Request $request, Response $response)
+    {
+        $route = $request->getAttribute('route');
+        $list_id = (int)$route->getArgument('list_id');
+
+        if (empty($list_id) || $list_id <= 0) {
+            return $response->withStatus(422, 'List id not provided');
+        }
+
+        $ListItems = new Items($this->container->get('db'));
+
+        return $response->withJson([
+            'lists' => $ListItems->getOverview(),
+        ]);
+    }
 
     /**
      * @param Request  $request
@@ -96,7 +119,7 @@ class Items extends BaseController
         $itemsQuery->execute(['item_id' => $last_inserted_id]);
 
         return $response->withJson([
-            'item' => $itemsQuery->fetchAll(),
+            'Items' => $itemsQuery->fetchAll(),
         ]);
     }
 
