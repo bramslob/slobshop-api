@@ -100,14 +100,4 @@ class Lists extends BaseModel
             return false;
         }
     }
-
-    /**
-     * @param $current
-     *
-     * @return array
-     */
-    protected function diff($current)
-    {
-        return array_diff($this->data, $current);
-    }
 }

@@ -41,7 +41,7 @@ class Items extends BaseModel
             'item_id' => $item_id,
         ]);
 
-        return $this->toArray($itemsQuery->fetchAll());
+        return $this->toArray([$itemsQuery->fetch()]);
     }
 
     /**
@@ -57,7 +57,7 @@ class Items extends BaseModel
 
         foreach ($data as &$row) {
             try {
-                $row['data'] = json_decode($row['data']);
+                $row['data'] = json_decode($row['data'], true);
             } catch (\Exception $exception) {
                 continue;
             }
@@ -104,28 +104,25 @@ class Items extends BaseModel
      */
     public function update()
     {
-
         try {
             $this->db->beginTransaction();
 
-            $current = $this->getFromId($this->ids['item_id']);
+            $current = $this->getFromId($this->ids['item_id'])[0];
 
             if (($diff = $this->diff($current)) === []) {
                 return $current;
             }
 
-
-            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :list_id');
-            $updateQuery->execute(
-                array_merge(
-                    $diff,
-                    $this->ids
-                )
-            );
+            if (!empty($diff['name'])) {
+                $this->updateColumns($diff);
+            }
+            if (!empty($diff['data'])) {
+                $this->updateData($current['data'], $diff['data']);
+            }
 
             $this->db->commit();
 
-            return $this->getFromId($this->ids['id']);
+            return $this->getFromId($this->ids['item_id']);
 
         } catch (\Exception $exception) {
 
@@ -136,9 +133,34 @@ class Items extends BaseModel
     }
 
     /**
-     * @param array $data
+     * Update just the name, in the future the need for more data here is prop. needed, but for now : YAGNI
      */
-    protected function saveDynamicColumns($item_id, array $data = [])
+    protected function updateColumns($diff)
+    {
+        $updateQuery = $this->db->prepare('UPDATE items SET name = :name WHERE id = :item_id');
+        $updateQuery->execute(
+            array_merge(
+                $diff,
+                ['item_id' => $this->ids['item_id']]
+            )
+        );
+    }
+
+    /**
+     * @param $current_data
+     * @param $update_data
+     */
+    protected function updateData($current_data, $update_data)
+    {
+        $this->saveDynamicColumns($update_data, count($current_data) > 0);
+        $this->removeDynamicData(array_diff_key($current_data, $update_data));
+    }
+
+    /**
+     * @param array $data
+     * @param bool  $dynamic_column_created
+     */
+    protected function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
     {
         if (count($data) <= 0) {
             return;
@@ -147,7 +169,6 @@ class Items extends BaseModel
         $dynamic_column_creation_query = $this->db->prepare('UPDATE items SET data = COLUMN_CREATE(:key, :value) WHERE id = :item_id');
         $dynamic_column_addition_query = $this->db->prepare('UPDATE items SET data = COLUMN_ADD(data, :key, :value) WHERE id = :item_id');
 
-        $dynamic_column_created = false;
         foreach ($data as $key => $value) {
 
             if (null === $value) {
@@ -156,7 +177,7 @@ class Items extends BaseModel
 
             try {
                 $data = [
-                    'item_id' => $item_id,
+                    'item_id' => $this->ids['item_id'],
                     'key'     => $key,
                     'value'   => $value,
                 ];
@@ -168,6 +189,30 @@ class Items extends BaseModel
                     $dynamic_column_creation_query->execute($data);
                     $dynamic_column_created = true;
                 }
+
+            } catch (\Exception $exception) {
+                continue;
+            }
+        }
+    }
+
+    /**
+     * @param array $data
+     */
+    protected function removeDynamicData(array $data = [])
+    {
+        if (count($data) <= 0) {
+            return;
+        }
+
+        $dynamic_column_deletion_query = $this->db->prepare('UPDATE items SET data = COLUMN_DELETE(data, :key) WHERE id = :item_id');
+
+        foreach ($data as $key => $value) {
+            try {
+                $dynamic_column_deletion_query->execute([
+                    'item_id' => $this->ids['item_id'],
+                    'key'     => $key,
+                ]);
 
             } catch (\Exception $exception) {
                 continue;

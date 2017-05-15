@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class ItemsController extends BaseController
 {
     /**
-     * @param int $list_id
+     * @param Request $request
      *
      * @return bool
      */
@@ -115,7 +115,27 @@ class ItemsController extends BaseController
         if (($list_id = $this->checkListId($request)) === false) {
             return $response->withStatus(422, 'Invalid List id provided');
         }
+        if (($item_id = $this->checkItemId($request)) === false) {
+            return $response->withStatus(422, 'Invalid Item id provided');
+        }
 
+        /**
+         * @var Lists $List
+         */
+        $ListItems = (new Items($this->container->get('db')))
+            ->setData($request->getParsedBody())
+            ->setIds([
+                'list_id' => $list_id,
+                'item_id' => $item_id,
+            ]);
+
+        if ($ListItems->validate() === false) {
+
+            return $response->withStatus(422, 'Input incorrect');
+        }
+
+        return $response->withJson([
+            'list' => $ListItems->update(),
+        ]);
     }
-
 }

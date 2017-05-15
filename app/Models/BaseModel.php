@@ -92,4 +92,22 @@ abstract class BaseModel
 
         return $query->fetchColumn() !== false;
     }
+
+
+    /**
+     * @param $current
+     *
+     * @return array
+     */
+    protected function diff($current)
+    {
+        return array_map(
+            'unserialize',
+            array_diff(
+                array_map('serialize', $this->data),
+                array_map('serialize', $current)
+            )
+        );
+
+    }
 }
