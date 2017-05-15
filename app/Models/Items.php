@@ -21,7 +21,7 @@ class Items extends BaseModel
      */
     public function getOverview()
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data` FROM items WHERE list_id = :list_id ORDER BY created_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY created_at DESC');
 
         $itemsQuery->execute($this->ids);
 
@@ -35,7 +35,7 @@ class Items extends BaseModel
      */
     public function getFromId($item_id): array
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data` FROM items WHERE id = :item_id ORDER BY created_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id ORDER BY created_at DESC');
 
         $itemsQuery->execute([
             'item_id' => $item_id,
@@ -154,6 +154,29 @@ class Items extends BaseModel
     {
         $this->saveDynamicColumns($update_data, count($current_data) > 0);
         $this->removeDynamicData(array_diff_key($current_data, $update_data));
+    }
+
+    /**
+     * @return array|bool
+     */
+    public function updateCheck()
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $updateQuery = $this->db->prepare('UPDATE items SET checked = NOT checked WHERE id = :item_id');
+            $updateQuery->execute(['item_id' => $this->ids['item_id']]);
+
+            $this->db->commit();
+
+            return $this->getFromId($this->ids['item_id']);
+
+        } catch (\Exception $exception) {
+
+            $this->db->rollBack();
+
+            return false;
+        }
     }
 
     /**

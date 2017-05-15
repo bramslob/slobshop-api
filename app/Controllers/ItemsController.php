@@ -110,6 +110,12 @@ class ItemsController extends BaseController
         ]);
     }
 
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return Response
+     */
     public function update(Request $request, Response $response)
     {
         if (($list_id = $this->checkListId($request)) === false) {
@@ -120,7 +126,7 @@ class ItemsController extends BaseController
         }
 
         /**
-         * @var Lists $List
+         * @var Items $ListItems
          */
         $ListItems = (new Items($this->container->get('db')))
             ->setData($request->getParsedBody())
@@ -135,7 +141,33 @@ class ItemsController extends BaseController
         }
 
         return $response->withJson([
-            'list' => $ListItems->update(),
+            'item' => $ListItems->update(),
+        ]);
+    }
+
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function check(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+        if (($item_id = $this->checkItemId($request)) === false) {
+            return $response->withStatus(422, 'Invalid Item id provided');
+        }
+
+        /**
+         * @var Items $ListItems
+         */
+        $ListItems = (new Items($this->container->get('db')))
+            ->setIds(['item_id' => $item_id]);
+
+        return $response->withJson([
+            'item' => $ListItems->updateCheck()
         ]);
     }
 }
