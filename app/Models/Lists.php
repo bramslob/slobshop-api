@@ -49,7 +49,7 @@ class Lists extends BaseModel
             'list_id' => $list_id,
         ]);
 
-        return $listsQuery->fetchAll();
+        return $listsQuery->fetch();
     }
 
     /**
@@ -82,10 +82,17 @@ class Lists extends BaseModel
         try {
             $this->db->beginTransaction();
 
-            $updateQuery = $this->db->prepare('UPDATE lists SET name  = :name WHERE id = :list_id');
+            $current = $this->getFromId($this->ids['id']);
+
+            if (($diff = $this->diff($current)) === []) {
+                return $current;
+            }
+
+
+            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :list_id');
             $updateQuery->execute(
                 array_merge(
-                    ['name' => $this->data['name']],
+                    $diff,
                     $this->ids
                 )
             );
@@ -100,5 +107,15 @@ class Lists extends BaseModel
 
             return false;
         }
+    }
+
+    /**
+     * @param $current
+     *
+     * @return array
+     */
+    protected function diff($current)
+    {
+        return array_diff($this->data, $current);
     }
 }
