@@ -43,7 +43,7 @@ class ItemsController extends BaseController
     public function overview(Request $request, Response $response)
     {
         if (($list_id = $this->checkListId($request)) === false) {
-            return $response->withStatus(422, 'List id not provided');
+            return $response->withStatus(422, 'Invalid List id provided');
         }
 
         /**
@@ -66,7 +66,7 @@ class ItemsController extends BaseController
     public function create(Request $request, Response $response)
     {
         if (($list_id = $this->checkListId($request)) === false) {
-            return $response->withStatus(422, 'List id not provided');
+            return $response->withStatus(422, 'Invalid List id provided');
         }
 
         /**
