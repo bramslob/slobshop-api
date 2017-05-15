@@ -22,9 +22,9 @@ abstract class BaseModel
     protected $data = [];
 
     /**
-     * @var int
+     * @var array
      */
-    protected $id;
+    protected $ids = [];
 
     public function __construct(PDO $db)
     {
@@ -60,13 +60,13 @@ abstract class BaseModel
     }
 
     /**
-     * @param mixed $id
+     * @param array $ids
      *
      * @return BaseModel
      */
-    public function setId($id)
+    public function setIds(array $ids)
     {
-        $this->id = $id;
+        $this->ids = $ids;
 
         return $this;
     }

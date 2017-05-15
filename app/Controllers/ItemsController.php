@@ -4,11 +4,35 @@
 namespace App\Controllers;
 
 use App\Models\Items;
+use App\Models\Lists;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class ItemsController extends BaseController
 {
+    /**
+     * @param int $list_id
+     *
+     * @return bool
+     */
+    protected function checkListId(Request $request)
+    {
+        $route = $request->getAttribute('route');
+        $list_id = (int)$route->getArgument('list_id');
+
+        if ($list_id <= 0) {
+            return false;
+        }
+
+        /**
+         * @var Lists
+         */
+        if ((new Lists($this->container->get('db')))->checkId($list_id) === false) {
+            return false;
+        }
+
+        return $list_id;
+    }
 
     /**
      * @param Request  $request
@@ -18,14 +42,15 @@ class ItemsController extends BaseController
      */
     public function overview(Request $request, Response $response)
     {
-        $route = $request->getAttribute('route');
-        $list_id = (int)$route->getArgument('list_id');
-
-        if (empty($list_id) || $list_id <= 0) {
+        if (($list_id = $this->checkListId($request)) === false) {
             return $response->withStatus(422, 'List id not provided');
         }
 
-        $ListItems = new Items($this->container->get('db'));
+        /**
+         * @var Items $ListItems
+         */
+        $ListItems = (new Items($this->container->get('db')))
+            ->setIds(['list_id' => $list_id]);
 
         return $response->withJson([
             'lists' => $ListItems->getOverview(),
@@ -38,128 +63,27 @@ class ItemsController extends BaseController
      *
      * @return Response
      */
-    public function overview(Request $request, Response $response)
-    {
-        $route = $request->getAttribute('route');
-        $list_id = (int)$route->getArgument('list_id');
-
-        if (empty($list_id) || $list_id <= 0) {
-            return $response->withStatus(422, 'List id not provided');
-        }
-
-        /**
-         * @var \PDO $db
-         */
-        $db = $this->container->get('db');
-
-        $itemsQuery = $db->prepare('SELECT id, name, COLUMN_JSON(data) FROM items WHERE list_id = :list_id ORDER BY created_at DESC');
-        $itemsQuery->execute(
-            ['list_id' => $list_id]
-        );
-
-        return $response->withJson([
-            'items' => $itemsQuery->fetchAll(),
-        ]);
-    }
-
-    /**
-     * @param Request  $request
-     * @param Response $response
-     *
-     * @return Response
-     */
     public function create(Request $request, Response $response)
     {
-
-        $route = $request->getAttribute('route');
-        $list_id = (int)$route->getArgument('list_id');
-
-        if (empty($list_id) || $list_id <= 0) {
+        if (($list_id = $this->checkListId($request)) === false) {
             return $response->withStatus(422, 'List id not provided');
         }
 
-        $validation = [
-            'name' => '',
-        ];
-
-        $body = $request->getParsedBody();
-        if (count(array_intersect_key($body, $validation)) <= 0) {
-            return $response->withStatus(422, 'Required fields not provided');
-        }
-
         /**
-         * @var \PDO $db
+         * @var Items $ListItems
          */
-        $db = $this->container->get('db');
+        $ListItems = (new Items($this->container->get('db')))
+            ->setIds(['list_id' => $list_id])
+            ->setData($request->getParsedBody());
 
-        try {
-            $db->beginTransaction();
+        if ($ListItems->validate() === false) {
 
-            $insertQuery = $db->prepare('INSERT INTO items (name, list_id) VALUES(:name, :list_id)');
-            $insertQuery->execute([
-                'name'    => $body['name'],
-                'list_id' => $list_id,
-            ]);
-            $last_inserted_id = $db->lastInsertId();
-
-
-            if (!empty($body['data']) && is_array($body['data'])) {
-                $this->saveDynamicColumns($db, $last_inserted_id, $body['data']);
-            }
-
-            $db->commit();
-        } catch (\Exception $exception) {
-
-            $db->rollBack();
-
-            return $response->withStatus(422, 'Insert failed');
+            return $response->withStatus(422, 'Input incorrect');
         }
-
-        $itemsQuery = $db->prepare('SELECT id, name, COLUMN_JSON(data) FROM items WHERE id = :item_id');
-        $itemsQuery->execute(['item_id' => $last_inserted_id]);
 
         return $response->withJson([
-            'Items' => $itemsQuery->fetchAll(),
+            'Item' => $ListItems->create(),
         ]);
     }
 
-    /**
-     * @param array $data
-     */
-    protected function saveDynamicColumns($db, $item_id, array $data = [])
-    {
-        // for now we only accept key -> value.
-        if (count($data) <= 0) {
-            return;
-        }
-
-        $dynamic_column_creation_query = $db->prepare('UPDATE items SET data = COLUMN_CREATE(:key, :value) WHERE id = :item_id');
-        $dynamic_column_addition_query = $db->prepare('UPDATE items SET data = COLUMN_ADD(data, :key, :value) WHERE id = :item_id');
-
-        $dynamic_column_created = false;
-        foreach ($data as $key => $value) {
-            if (is_null($value)) {
-                continue;
-            }
-
-            try {
-                $data = [
-                    'item_id' => $item_id,
-                    'key'     => $key,
-                    'value'   => $value,
-                ];
-
-                if ($dynamic_column_created === true) {
-                    $dynamic_column_addition_query->execute($data);
-                }
-                else {
-                    $dynamic_column_creation_query->execute($data);
-                    $dynamic_column_created = true;
-                }
-
-            } catch (\Exception $exception) {
-                continue;
-            }
-        }
-    }
 }

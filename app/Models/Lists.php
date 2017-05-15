@@ -12,6 +12,19 @@ class Lists extends BaseModel
     ];
 
     /**
+     * @param int $list_id
+     *
+     * @return bool
+     */
+    public function checkId(int $list_id)
+    {
+        $query = $this->db->prepare('SELECT id, name FROM lists WHERE id = :list_id  ORDER BY created_at DESC');
+        $query->execute(['list_id' => $list_id]);
+
+        return $query->fetchColumn() !== false;
+    }
+
+    /**
      * @return array
      */
     public function getOverview()
@@ -70,13 +83,16 @@ class Lists extends BaseModel
             $this->db->beginTransaction();
 
             $updateQuery = $this->db->prepare('UPDATE lists SET name  = :name WHERE id = :list_id');
-            $updateQuery->execute([
-                'name'    => $this->data['name'],
-                'list_id' => $this->id,
-            ]);
+            $updateQuery->execute(
+                array_merge(
+                    ['name' => $this->data['name']],
+                    $this->ids
+                )
+            );
+
             $this->db->commit();
 
-            return $this->getFromId($this->id);
+            return $this->getFromId($this->ids['id']);
 
         } catch (\Exception $exception) {
 

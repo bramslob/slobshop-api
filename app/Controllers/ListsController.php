@@ -16,6 +16,9 @@ class ListsController extends BaseController
      */
     public function overview(Request $request, Response $response)
     {
+        /**
+         * @var Lists $List
+         */
         $List = new Lists($this->container->get('db'));
 
         return $response->withJson([
@@ -31,6 +34,9 @@ class ListsController extends BaseController
      */
     public function create(Request $request, Response $response)
     {
+        /**
+         * @var Lists $List
+         */
         $List = (new Lists($this->container->get('db')))
             ->setData($request->getParsedBody());
 
@@ -55,9 +61,12 @@ class ListsController extends BaseController
         $route = $request->getAttribute('route');
         $list_id = (int)$route->getArgument('list_id');
 
+        /**
+         * @var Lists $List
+         */
         $List = (new Lists($this->container->get('db')))
             ->setData($request->getParsedBody())
-            ->setId($list_id);
+            ->setIds(['id' => $list_id]);
 
         if ($List->validate() === false) {
 
