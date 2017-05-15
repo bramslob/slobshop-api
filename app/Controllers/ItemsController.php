@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class ItemsController extends BaseController
 {
     /**
-     * @param int $list_id
+     * @param Request $request
      *
      * @return bool
      */
@@ -32,6 +32,30 @@ class ItemsController extends BaseController
         }
 
         return $list_id;
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return bool|int
+     */
+    protected function checkItemId(Request $request)
+    {
+        $route = $request->getAttribute('route');
+        $item_id = (int)$route->getArgument('item_id');
+
+        if ($item_id <= 0) {
+            return false;
+        }
+
+        /**
+         * @var Items
+         */
+        if ((new Items($this->container->get('db')))->checkId($item_id) === false) {
+            return false;
+        }
+
+        return $item_id;
     }
 
     /**
@@ -86,4 +110,32 @@ class ItemsController extends BaseController
         ]);
     }
 
+    public function update(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+        if (($item_id = $this->checkItemId($request)) === false) {
+            return $response->withStatus(422, 'Invalid Item id provided');
+        }
+
+        /**
+         * @var Lists $List
+         */
+        $ListItems = (new Items($this->container->get('db')))
+            ->setData($request->getParsedBody())
+            ->setIds([
+                'list_id' => $list_id,
+                'item_id' => $item_id,
+            ]);
+
+        if ($ListItems->validate() === false) {
+
+            return $response->withStatus(422, 'Input incorrect');
+        }
+
+        return $response->withJson([
+            'list' => $ListItems->update(),
+        ]);
+    }
 }

@@ -9,6 +9,30 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class ListsController extends BaseController
 {
     /**
+     * @param Request $request
+     *
+     * @return bool
+     */
+    protected function checkListId(Request $request)
+    {
+        $route = $request->getAttribute('route');
+        $list_id = (int)$route->getArgument('list_id');
+
+        if ($list_id <= 0) {
+            return false;
+        }
+
+        /**
+         * @var Lists
+         */
+        if ((new Lists($this->container->get('db')))->checkId($list_id) === false) {
+            return false;
+        }
+
+        return $list_id;
+    }
+
+    /**
      * @param Request  $request
      * @param Response $response
      *
@@ -58,8 +82,9 @@ class ListsController extends BaseController
      */
     public function update(Request $request, Response $response)
     {
-        $route = $request->getAttribute('route');
-        $list_id = (int)$route->getArgument('list_id');
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
 
         /**
          * @var Lists $List

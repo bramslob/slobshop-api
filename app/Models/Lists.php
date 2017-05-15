@@ -5,24 +5,16 @@ namespace App\Models;
 class Lists extends BaseModel
 {
     /**
+     * @var string
+     */
+    protected $table = 'lists';
+
+    /**
      * @var array
      */
     protected $validation = [
         'name' => '',
     ];
-
-    /**
-     * @param int $list_id
-     *
-     * @return bool
-     */
-    public function checkId(int $list_id)
-    {
-        $query = $this->db->prepare('SELECT id, name FROM lists WHERE id = :list_id  ORDER BY created_at DESC');
-        $query->execute(['list_id' => $list_id]);
-
-        return $query->fetchColumn() !== false;
-    }
 
     /**
      * @return array
@@ -49,7 +41,7 @@ class Lists extends BaseModel
             'list_id' => $list_id,
         ]);
 
-        return $listsQuery->fetchAll();
+        return $listsQuery->fetch();
     }
 
     /**
@@ -82,10 +74,17 @@ class Lists extends BaseModel
         try {
             $this->db->beginTransaction();
 
-            $updateQuery = $this->db->prepare('UPDATE lists SET name  = :name WHERE id = :list_id');
+            $current = $this->getFromId($this->ids['id']);
+
+            if (($diff = $this->diff($current)) === []) {
+                return $current;
+            }
+
+
+            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :list_id');
             $updateQuery->execute(
                 array_merge(
-                    ['name' => $this->data['name']],
+                    $diff,
                     $this->ids
                 )
             );
