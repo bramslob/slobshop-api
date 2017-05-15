@@ -23,6 +23,7 @@ $app->group('/api', function () {
                 $this->post('', ItemsController::class . ':create');
                 $this->get('/{item_id}', ItemsController::class . ':view');
                 $this->post('/{item_id}', ItemsController::class . ':update');
+                $this->post('/{item_id}/check', ItemsController::class . ':check');
             });
         });
     });
