@@ -5,24 +5,16 @@ namespace App\Models;
 class Lists extends BaseModel
 {
     /**
+     * @var string
+     */
+    protected $table = 'lists';
+
+    /**
      * @var array
      */
     protected $validation = [
         'name' => '',
     ];
-
-    /**
-     * @param int $list_id
-     *
-     * @return bool
-     */
-    public function checkId(int $list_id)
-    {
-        $query = $this->db->prepare('SELECT id, name FROM lists WHERE id = :list_id  ORDER BY created_at DESC');
-        $query->execute(['list_id' => $list_id]);
-
-        return $query->fetchColumn() !== false;
-    }
 
     /**
      * @return array

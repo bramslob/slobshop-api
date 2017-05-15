@@ -26,6 +26,11 @@ abstract class BaseModel
      */
     protected $ids = [];
 
+    /**
+     * @var string
+     */
+    protected $table = '';
+
     public function __construct(PDO $db)
     {
         $this->db = $db;
@@ -69,5 +74,22 @@ abstract class BaseModel
         $this->ids = $ids;
 
         return $this;
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function checkId(int $id)
+    {
+        if ($this->table === '') {
+            return false;
+        }
+
+        $query = $this->db->prepare("SELECT 1 FROM `{$this->table}` WHERE id = :id");
+        $query->execute(['id' => $id]);
+
+        return $query->fetchColumn() !== false;
     }
 }

@@ -35,6 +35,30 @@ class ItemsController extends BaseController
     }
 
     /**
+     * @param Request $request
+     *
+     * @return bool|int
+     */
+    protected function checkItemId(Request $request)
+    {
+        $route = $request->getAttribute('route');
+        $item_id = (int)$route->getArgument('item_id');
+
+        if ($item_id <= 0) {
+            return false;
+        }
+
+        /**
+         * @var Items
+         */
+        if ((new Items($this->container->get('db')))->checkId($item_id) === false) {
+            return false;
+        }
+
+        return $item_id;
+    }
+
+    /**
      * @param Request  $request
      * @param Response $response
      *
@@ -84,6 +108,14 @@ class ItemsController extends BaseController
         return $response->withJson([
             'Item' => $ListItems->create(),
         ]);
+    }
+
+    public function update(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+
     }
 
 }

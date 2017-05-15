@@ -5,6 +5,11 @@ namespace App\Models;
 class Items extends BaseModel
 {
     /**
+     * @var string
+     */
+    protected $table = 'items';
+
+    /**
      * @var array
      */
     protected $validation = [
@@ -100,6 +105,34 @@ class Items extends BaseModel
     public function update()
     {
 
+        try {
+            $this->db->beginTransaction();
+
+            $current = $this->getFromId($this->ids['item_id']);
+
+            if (($diff = $this->diff($current)) === []) {
+                return $current;
+            }
+
+
+            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :list_id');
+            $updateQuery->execute(
+                array_merge(
+                    $diff,
+                    $this->ids
+                )
+            );
+
+            $this->db->commit();
+
+            return $this->getFromId($this->ids['id']);
+
+        } catch (\Exception $exception) {
+
+            $this->db->rollBack();
+
+            return false;
+        }
     }
 
     /**
