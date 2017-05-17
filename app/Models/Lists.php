@@ -19,11 +19,13 @@ class Lists extends BaseModel
     /**
      * @return array
      */
-    public function getOverview()
+    public function getOverview($archive = false)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name FROM lists ORDER BY created_at DESC');
+        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE checked = :checked ORDER BY created_at DESC');
 
-        $listsQuery->execute();
+        $listsQuery->execute([
+            'checked' => $archive,
+        ]);
 
         return $listsQuery->fetchAll();
     }
@@ -35,7 +37,7 @@ class Lists extends BaseModel
      */
     public function getFromId($list_id)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name FROM lists WHERE id = :list_id ORDER BY created_at DESC');
+        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE id = :list_id ORDER BY created_at DESC');
 
         $listsQuery->execute([
             'list_id' => $list_id,
@@ -81,13 +83,36 @@ class Lists extends BaseModel
             }
 
 
-            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :list_id');
+            $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :id');
             $updateQuery->execute(
                 array_merge(
                     $diff,
                     $this->ids
                 )
             );
+
+            $this->db->commit();
+
+            return $this->getFromId($this->ids['id']);
+
+        } catch (\Exception $exception) {
+
+            $this->db->rollBack();
+
+            return false;
+        }
+    }
+
+    /**
+     * @return array|bool
+     */
+    public function updateCheck()
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $updateQuery = $this->db->prepare('UPDATE lists SET checked = NOT checked WHERE id = :id');
+            $updateQuery->execute($this->ids);
 
             $this->db->commit();
 
