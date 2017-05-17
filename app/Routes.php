@@ -24,6 +24,7 @@ $app->group('/api', function () {
                 $this->get('/{item_id}', ItemsController::class . ':view');
                 $this->post('/{item_id}', ItemsController::class . ':update');
                 $this->post('/{item_id}/check', ItemsController::class . ':check');
+                $this->post('/{item_id}/delete', ItemsController::class . ':delete');
             });
         });
     });

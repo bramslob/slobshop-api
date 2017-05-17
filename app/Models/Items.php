@@ -180,6 +180,30 @@ class Items extends BaseModel
     }
 
     /**
+     * @return bool
+     */
+    public function delete()
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $deleteQuery = $this->db->prepare('DELETE FROM items WHERE id = :item_id');
+            $deleteQuery->execute(['item_id' => $this->ids['item_id']]);
+
+            $this->db->commit();
+
+            return true;
+
+        } catch (\Exception $exception) {
+
+            $this->db->rollBack();
+
+            return false;
+        }
+
+    }
+
+    /**
      * @param array $data
      * @param bool  $dynamic_column_created
      */

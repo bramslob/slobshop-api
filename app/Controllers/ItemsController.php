@@ -170,4 +170,31 @@ class ItemsController extends BaseController
             'item' => $ListItems->updateCheck()
         ]);
     }
+
+
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function delete(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+        if (($item_id = $this->checkItemId($request)) === false) {
+            return $response->withStatus(422, 'Invalid Item id provided');
+        }
+
+        /**
+         * @var Items $ListItems
+         */
+        $ListItems = (new Items($this->container->get('db')))
+            ->setIds(['item_id' => $item_id]);
+
+        return $response->withJson([
+            'removed' => $ListItems->delete()
+        ]);
+    }
 }
