@@ -102,5 +102,29 @@ class ListsController extends BaseController
             'list' => $List->update(),
         ]);
     }
+
+
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function check(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+
+        /**
+         * @var Lists $List
+         */
+        $List = (new Lists($this->container->get('db')))
+            ->setIds(['id' => $list_id]);
+
+        return $response->withJson([
+            'list' => $List->updateCheck(),
+        ]);
+    }
 }
 
