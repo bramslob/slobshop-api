@@ -17,9 +17,79 @@ CREATE TABLE IF NOT EXISTS `items`
   `data`       BLOB         NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  FOREIGN KEY item_list_id (`list_id`) REFERENCES `lists` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY item_list_id (`list_id`) REFERENCES `lists` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 )
   ENGINE = InnoDB;
 
-ALTER TABLE `items` ADD COLUMN IF NOT EXISTS `checked` BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE `lists` ADD COLUMN IF NOT EXISTS `checked` BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE `items`
+  ADD COLUMN IF NOT EXISTS `checked` BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE `lists`
+  ADD COLUMN IF NOT EXISTS `checked` BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE `items`
+  ADD COLUMN IF NOT EXISTS `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `lists`
+  ADD COLUMN IF NOT EXISTS `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+DELIMITER $$
+
+CREATE
+TRIGGER `lists_after_update`
+BEFORE UPDATE
+  ON `lists`
+FOR EACH ROW
+  BEGIN
+    SET NEW.updated_at = NOW();
+  END$$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE
+TRIGGER `items_after_insert`
+AFTER INSERT
+  ON `items`
+FOR EACH ROW
+  BEGIN
+    UPDATE `lists`
+    SET updated_at = NOW()
+    WHERE id = NEW.list_id;
+  END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE
+TRIGGER `items_after_update`
+BEFORE UPDATE
+  ON `items`
+FOR EACH ROW
+  BEGIN
+    UPDATE `lists`
+    SET updated_at = NOW()
+    WHERE id = NEW.list_id;
+
+    SET NEW.updated_at = NOW();
+
+  END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE
+TRIGGER `items_before_delete`
+BEFORE DELETE
+  ON `items`
+FOR EACH ROW
+  BEGIN
+    UPDATE `lists`
+    SET updated_at = NOW()
+    WHERE id = OLD.list_id;
+
+  END$$
+
+DELIMITER ;
