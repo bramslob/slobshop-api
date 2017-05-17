@@ -21,7 +21,7 @@ class Lists extends BaseModel
      */
     public function getOverview($archive = false)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE checked = :checked ORDER BY created_at DESC');
+        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE checked = :checked ORDER BY updated_at DESC');
 
         $listsQuery->execute([
             'checked' => $archive,
@@ -37,7 +37,7 @@ class Lists extends BaseModel
      */
     public function getFromId($list_id)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE id = :list_id ORDER BY created_at DESC');
+        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE id = :list_id');
 
         $listsQuery->execute([
             'list_id' => $list_id,

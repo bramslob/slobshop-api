@@ -21,7 +21,7 @@ class Items extends BaseModel
      */
     public function getOverview()
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY created_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY updated_at DESC');
 
         $itemsQuery->execute($this->ids);
 
@@ -35,7 +35,7 @@ class Items extends BaseModel
      */
     public function getFromId($item_id): array
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id ORDER BY created_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id');
 
         $itemsQuery->execute([
             'item_id' => $item_id,
