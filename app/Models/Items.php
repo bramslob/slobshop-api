@@ -149,8 +149,7 @@ class Items extends BaseModel
     /**
      * Update just the name, in the future the need for more data here is prop. needed, but for now : YAGNI
      */
-    protected
-    function updateColumns($diff)
+    protected function updateColumns($diff)
     {
         $updateQuery = $this->db->prepare('UPDATE items SET name = :name WHERE id = :item_id');
         $updateQuery->execute(
@@ -165,8 +164,7 @@ class Items extends BaseModel
      * @param $current_data
      * @param $update_data
      */
-    protected
-    function updateData($current_data, $update_data)
+    protected function updateData($current_data, $update_data)
     {
         $this->saveDynamicColumns($update_data, count($current_data) > 0);
         $this->removeDynamicData(array_diff_key($current_data, $update_data));
@@ -175,8 +173,7 @@ class Items extends BaseModel
     /**
      * @return array|bool
      */
-    public
-    function updateCheck()
+    public function updateCheck()
     {
         try {
             $this->db->beginTransaction();
@@ -199,8 +196,7 @@ class Items extends BaseModel
     /**
      * @return bool
      */
-    public
-    function delete()
+    public function delete()
     {
         try {
             $this->db->beginTransaction();
@@ -264,8 +260,7 @@ class Items extends BaseModel
     /**
      * @param array $data
      */
-    protected
-    function removeDynamicData(array $data = [])
+    protected function removeDynamicData(array $data = [])
     {
         if (count($data) <= 0) {
             return;
