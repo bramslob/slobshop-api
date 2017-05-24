@@ -37,7 +37,7 @@ class Lists extends BaseModel
      */
     public function getFromId($list_id)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE id = :list_id');
+        $listsQuery = $this->db->prepare('SELECT id, identifier, name, checked FROM lists WHERE id = :list_id');
 
         $listsQuery->execute([
             'list_id' => $list_id,
@@ -53,7 +53,7 @@ class Lists extends BaseModel
      */
     public function getFromIdentifier($identifier)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE identifier = :identifier');
+        $listsQuery = $this->db->prepare('SELECT id, identifier, name, checked FROM lists WHERE identifier = :identifier');
 
         $listsQuery->execute([
             'identifier' => $identifier,
