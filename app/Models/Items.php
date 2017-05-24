@@ -21,7 +21,7 @@ class Items extends BaseModel
      */
     public function getOverview()
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY updated_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY updated_at DESC');
 
         $itemsQuery->execute($this->ids);
 
@@ -35,10 +35,25 @@ class Items extends BaseModel
      */
     public function getFromId($item_id): array
     {
-        $itemsQuery = $this->db->prepare('SELECT id, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id');
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id');
 
         $itemsQuery->execute([
             'item_id' => $item_id,
+        ]);
+
+        return $this->toArray([$itemsQuery->fetch()]);
+    }
+
+    /**
+     * @param $identifier
+     * @return array
+     */
+    public function getFromIdentifier($identifier)
+    {
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE identifier = :identifier');
+
+        $itemsQuery->execute([
+            'identifier' => $identifier,
         ]);
 
         return $this->toArray([$itemsQuery->fetch()]);
@@ -116,9 +131,8 @@ class Items extends BaseModel
             if (!empty($diff['name'])) {
                 $this->updateColumns($diff);
             }
-            if (!empty($diff['data'])) {
-                $this->updateData($current['data'], $diff['data']);
-            }
+
+            $this->updateData($current['data'], $this->data['data']);
 
             $this->db->commit();
 
@@ -135,7 +149,8 @@ class Items extends BaseModel
     /**
      * Update just the name, in the future the need for more data here is prop. needed, but for now : YAGNI
      */
-    protected function updateColumns($diff)
+    protected
+    function updateColumns($diff)
     {
         $updateQuery = $this->db->prepare('UPDATE items SET name = :name WHERE id = :item_id');
         $updateQuery->execute(
@@ -150,7 +165,8 @@ class Items extends BaseModel
      * @param $current_data
      * @param $update_data
      */
-    protected function updateData($current_data, $update_data)
+    protected
+    function updateData($current_data, $update_data)
     {
         $this->saveDynamicColumns($update_data, count($current_data) > 0);
         $this->removeDynamicData(array_diff_key($current_data, $update_data));
@@ -159,7 +175,8 @@ class Items extends BaseModel
     /**
      * @return array|bool
      */
-    public function updateCheck()
+    public
+    function updateCheck()
     {
         try {
             $this->db->beginTransaction();
@@ -182,7 +199,8 @@ class Items extends BaseModel
     /**
      * @return bool
      */
-    public function delete()
+    public
+    function delete()
     {
         try {
             $this->db->beginTransaction();
@@ -205,9 +223,10 @@ class Items extends BaseModel
 
     /**
      * @param array $data
-     * @param bool  $dynamic_column_created
+     * @param bool $dynamic_column_created
      */
-    protected function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
+    protected
+    function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
     {
         if (count($data) <= 0) {
             return;
@@ -225,14 +244,13 @@ class Items extends BaseModel
             try {
                 $data = [
                     'item_id' => $this->ids['item_id'],
-                    'key'     => $key,
-                    'value'   => $value,
+                    'key' => $key,
+                    'value' => $value,
                 ];
 
                 if ($dynamic_column_created === true) {
                     $dynamic_column_addition_query->execute($data);
-                }
-                else {
+                } else {
                     $dynamic_column_creation_query->execute($data);
                     $dynamic_column_created = true;
                 }
@@ -246,7 +264,8 @@ class Items extends BaseModel
     /**
      * @param array $data
      */
-    protected function removeDynamicData(array $data = [])
+    protected
+    function removeDynamicData(array $data = [])
     {
         if (count($data) <= 0) {
             return;
@@ -258,7 +277,7 @@ class Items extends BaseModel
             try {
                 $dynamic_column_deletion_query->execute([
                     'item_id' => $this->ids['item_id'],
-                    'key'     => $key,
+                    'key' => $key,
                 ]);
 
             } catch (\Exception $exception) {
