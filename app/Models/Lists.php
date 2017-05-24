@@ -21,7 +21,7 @@ class Lists extends BaseModel
      */
     public function getOverview($archive = false)
     {
-        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE checked = :checked ORDER BY updated_at DESC');
+        $listsQuery = $this->db->prepare('SELECT id, identifier, name, checked FROM lists WHERE checked = :checked ORDER BY updated_at DESC');
 
         $listsQuery->execute([
             'checked' => $archive,
@@ -41,6 +41,22 @@ class Lists extends BaseModel
 
         $listsQuery->execute([
             'list_id' => $list_id,
+        ]);
+
+        return $listsQuery->fetch();
+    }
+
+    /**
+     * @param $identifier
+     *
+     * @return array
+     */
+    public function getFromIdentifier($identifier)
+    {
+        $listsQuery = $this->db->prepare('SELECT id, name, checked FROM lists WHERE identifier = :identifier');
+
+        $listsQuery->execute([
+            'identifier' => $identifier,
         ]);
 
         return $listsQuery->fetch();
@@ -81,7 +97,6 @@ class Lists extends BaseModel
             if (($diff = $this->diff($current)) === []) {
                 return $current;
             }
-
 
             $updateQuery = $this->db->prepare('UPDATE lists SET name = :name WHERE id = :id');
             $updateQuery->execute(
