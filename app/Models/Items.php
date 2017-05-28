@@ -100,7 +100,8 @@ class Items extends BaseModel
             $new_id = $this->db->lastInsertId();
 
             if (!empty($this->data['data']) && is_array($this->data['data'])) {
-                $this->saveDynamicColumns($new_id, $this->data['data']);
+                $this->ids['item_id'] = $new_id;
+                $this->saveDynamicColumns($this->data['data']);
             }
 
             $this->db->commit();
@@ -221,8 +222,7 @@ class Items extends BaseModel
      * @param array $data
      * @param bool $dynamic_column_created
      */
-    protected
-    function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
+    protected function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
     {
         if (count($data) <= 0) {
             return;
