@@ -93,3 +93,36 @@ FOR EACH ROW
   END$$
 
 DELIMITER ;
+
+ALTER TABLE `lists` ADD COLUMN identifier CHAR(36) NOT NULL AFTER `id`;
+ALTER TABLE `items` ADD COLUMN identifier CHAR(36) NOT NULL AFTER `id`;
+
+DELIMITER $$
+CREATE
+TRIGGER `lists_before_insert`
+BEFORE INSERT
+  ON `lists`
+FOR EACH ROW
+BEGIN
+  IF LENGTH(new.identifier) <= 0
+  THEN
+    SET new.identifier = (SELECT uuid());
+  END IF;
+  END$$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE
+TRIGGER `items_before_insert`
+BEFORE INSERT
+  ON `items`
+FOR EACH ROW
+BEGIN
+  IF LENGTH(new.identifier) <= 0
+  THEN
+    SET new.identifier = (SELECT uuid());
+  END IF;
+  END$$
+
+DELIMITER ;

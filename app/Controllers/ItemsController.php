@@ -69,6 +69,10 @@ class ItemsController extends BaseController
         if (($list_id = $this->checkListId($request)) === false) {
             return $response->withStatus(422, 'Invalid List id provided');
         }
+        /**
+         * @var Lists $List
+         */
+        $List = (new Lists($this->container->get('db')));
 
         /**
          * @var Items $ListItems
@@ -77,7 +81,8 @@ class ItemsController extends BaseController
             ->setIds(['list_id' => $list_id]);
 
         return $response->withJson([
-            'lists' => $ListItems->getOverview(),
+            'list'  => $List->getFromId($list_id),
+            'items' => $ListItems->getOverview(),
         ]);
     }
 
