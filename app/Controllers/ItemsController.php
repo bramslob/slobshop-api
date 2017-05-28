@@ -59,7 +59,7 @@ class ItemsController extends BaseController
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return mixed
@@ -81,13 +81,13 @@ class ItemsController extends BaseController
             ->setIds(['list_id' => $list_id]);
 
         return $response->withJson([
-            'list'  => $List->getFromId($list_id),
+            'list' => $List->getFromId($list_id),
             'items' => $ListItems->getOverview(),
         ]);
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -111,12 +111,12 @@ class ItemsController extends BaseController
         }
 
         return $response->withJson([
-            'Item' => $ListItems->create(),
+            'items' => [$ListItems->create()],
         ]);
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -146,12 +146,12 @@ class ItemsController extends BaseController
         }
 
         return $response->withJson([
-            'item' => $ListItems->update(),
+            'items' => $ListItems->update(),
         ]);
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -172,13 +172,13 @@ class ItemsController extends BaseController
             ->setIds(['item_id' => $item_id]);
 
         return $response->withJson([
-            'item' => $ListItems->updateCheck()
+            'items' => [$ListItems->updateCheck()]
         ]);
     }
 
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -199,7 +199,8 @@ class ItemsController extends BaseController
             ->setIds(['item_id' => $item_id]);
 
         return $response->withJson([
-            'removed' => $ListItems->delete()
+            'removed' => $removed,
+            'items' => $ListItems->getOverview(),
         ]);
     }
 }

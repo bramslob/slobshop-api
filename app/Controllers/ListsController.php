@@ -46,7 +46,7 @@ class ListsController extends BaseController
         $List = new Lists($this->container->get('db'));
 
         return $response->withJson([
-            'lists' => $List->getOverview(),
+            'lists' => [$List->getOverview()],
         ]);
     }
 
@@ -70,7 +70,7 @@ class ListsController extends BaseController
         }
 
         return $response->withJson([
-            'list' => $List->create(),
+            'lists' => [$List->create()],
         ]);
     }
 
@@ -99,7 +99,7 @@ class ListsController extends BaseController
         }
 
         return $response->withJson([
-            'list' => $List->update(),
+            'lists' => [$List->update()],
         ]);
     }
 
@@ -123,7 +123,7 @@ class ListsController extends BaseController
             ->setIds(['id' => $list_id]);
 
         return $response->withJson([
-            'list' => $List->updateCheck(),
+            'lists' => [$List->updateCheck()],
         ]);
     }
 }
