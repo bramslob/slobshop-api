@@ -16,6 +16,7 @@ $app->group('/api', function () {
         $this->group('/lists', function () {
             $this->get('', ListsController::class . ':overview');
             $this->post('', ListsController::class . ':create');
+            $this->get('/{list_id}', ListsController::class . ':details');
             $this->post('/{list_id}', ListsController::class . ':update');
             $this->post('/{list_id}/check', ListsController::class . ':check');
 
