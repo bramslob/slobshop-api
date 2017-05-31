@@ -33,7 +33,7 @@ class ListsController extends BaseController
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -51,7 +51,28 @@ class ListsController extends BaseController
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
+     * @param Response $response
+     * @return Response
+     */
+    public function details(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+
+        /**
+         * @var Lists $List
+         */
+        $List = new Lists($this->container->get('db'));
+
+        return $response->withJson([
+            'lists' => $List->getFromId($list_id),
+        ]);
+    }
+
+    /**
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -70,12 +91,12 @@ class ListsController extends BaseController
         }
 
         return $response->withJson([
-            'list' => $List->create(),
+            'lists' => $List->create(),
         ]);
     }
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -99,13 +120,13 @@ class ListsController extends BaseController
         }
 
         return $response->withJson([
-            'list' => $List->update(),
+            'lists' => $List->update(),
         ]);
     }
 
 
     /**
-     * @param Request  $request
+     * @param Request $request
      * @param Response $response
      *
      * @return Response
@@ -123,7 +144,7 @@ class ListsController extends BaseController
             ->setIds(['id' => $list_id]);
 
         return $response->withJson([
-            'list' => $List->updateCheck(),
+            'lists' => $List->updateCheck(),
         ]);
     }
 }

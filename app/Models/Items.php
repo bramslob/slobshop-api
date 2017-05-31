@@ -21,7 +21,7 @@ class Items extends BaseModel
      */
     public function getOverview()
     {
-        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE list_id = :list_id ORDER BY updated_at DESC');
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked, updated_at FROM items WHERE list_id = :list_id ORDER BY updated_at DESC');
 
         $itemsQuery->execute($this->ids);
 
@@ -35,7 +35,7 @@ class Items extends BaseModel
      */
     public function getFromId($item_id): array
     {
-        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE id = :item_id');
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked, updated_at FROM items WHERE id = :item_id');
 
         $itemsQuery->execute([
             'item_id' => $item_id,
@@ -50,7 +50,7 @@ class Items extends BaseModel
      */
     public function getFromIdentifier($identifier)
     {
-        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked FROM items WHERE identifier = :identifier');
+        $itemsQuery = $this->db->prepare('SELECT id, identifier, name, COLUMN_JSON(data) AS `data`, checked, updated_at FROM items WHERE identifier = :identifier');
 
         $itemsQuery->execute([
             'identifier' => $identifier,
@@ -100,7 +100,8 @@ class Items extends BaseModel
             $new_id = $this->db->lastInsertId();
 
             if (!empty($this->data['data']) && is_array($this->data['data'])) {
-                $this->saveDynamicColumns($new_id, $this->data['data']);
+                $this->ids['item_id'] = $new_id;
+                $this->saveDynamicColumns($this->data['data']);
             }
 
             $this->db->commit();
@@ -221,8 +222,7 @@ class Items extends BaseModel
      * @param array $data
      * @param bool $dynamic_column_created
      */
-    protected
-    function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
+    protected function saveDynamicColumns(array $data = [], $dynamic_column_created = false)
     {
         if (count($data) <= 0) {
             return;
