@@ -111,7 +111,28 @@ class ItemsController extends BaseController
         }
 
         return $response->withJson([
-            'items' => [$ListItems->create()],
+            'items' => $ListItems->create(),
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function view(Request $request, Response $response)
+    {
+        if (($list_id = $this->checkListId($request)) === false) {
+            return $response->withStatus(422, 'Invalid List id provided');
+        }
+        if (($item_id = $this->checkItemId($request)) === false) {
+            return $response->withStatus(422, 'Invalid Item id provided');
+        }
+
+        return $response->withJson([
+            'list' => (new Lists($this->container->get('db')))->getFromId($list_id),
+            'items' => (new Items($this->container->get('db')))->getFromId($item_id),
         ]);
     }
 
@@ -176,7 +197,6 @@ class ItemsController extends BaseController
         ]);
     }
 
-
     /**
      * @param Request $request
      * @param Response $response
@@ -199,7 +219,7 @@ class ItemsController extends BaseController
             ->setIds(['item_id' => $item_id]);
 
         return $response->withJson([
-            'removed' => $removed,
+            'removed' => $ListItems->delete(),
             'items' => $ListItems->getOverview(),
         ]);
     }
